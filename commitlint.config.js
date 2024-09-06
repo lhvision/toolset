@@ -43,7 +43,7 @@ export default {
     'type-case': [2, 'always', 'lower-case'],
 
     // 确保 subject 是句子式大小写
-    'subject-case': [2, 'always', 'sentence-case'],
+    'subject-case': [2, 'always', ['sentence-case', 'lower-case']],
 
     // 限制提交信息的最大长度为 72 个字符
     'header-max-length': [2, 'always', 72],

@@ -2,6 +2,7 @@
   "name": "toolset",
   "type": "module",
   "version": "1.0.0",
+  "packageManager": "pnpm@9.9.0",
   "description": "A monorepo containing a versatile set of tools and components for modern web development",
   "author": "lhvision",
   "license": "MIT",
@@ -11,7 +12,9 @@
     "pnpm": ">=9"
   },
   "scripts": {
-    "test": "pnpm -r run test",
+    "test:changed": "zx scripts/test-changed.js",
+    "ci:publish": "zx scripts/ci-publish.js",
+    "postchangeset": "node .changeset/replace-changelog.js",
     "oxlint": "npx oxlint@latest",
     "prepare": "simple-git-hooks"
   },
@@ -39,7 +42,7 @@
     }
   },
   "simple-git-hooks": {
-    "commit-msg": "pnpm commitlint -e -V || (echo '⚠️ 提交信息不符合规范！请参考格式：git commit -m \"feat(helpers): 添加新功能\"'; exit 1) && pnpm test",
+    "commit-msg": "pnpm commitlint -e -V || (echo '⚠️ 提交信息不符合规范！请参考格式：git commit -m \"feat(helpers): 添加新功能\"'; exit 1) && pnpm test:changed",
     "pre-commit": "pnpm lint-staged"
   },
   "lint-staged": {
