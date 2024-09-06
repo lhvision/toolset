@@ -1,0 +1,91 @@
+name: Release
+
+# on:
+#   push:
+#     branches:
+#       - main  # 只在推送到 main 分支时触发
+
+on:
+  workflow_dispatch: # 支持手动触发并传递参数
+    inputs:
+      otp:
+        description: Enter your npm OTP code
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # 允许创建 GitHub Releases
+      packages: write # 允许发布 npm 包
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Override registry in .npmrc
+        run: echo "registry=https://registry.npmjs.org" > ~/.npmrc # 临时修改 registry 配置
+
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@latest --activate
+
+      # 使用缓存加速依赖安装
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # 获取受影响的包列表
+      - name: Get affected packages
+        id: affected_packages
+        run: |
+          pnpm changeset status --json > changesets.json
+          # 提取受影响的包
+          AFFECTED_PACKAGES=$(jq -r '.releases[].name' changesets.json)
+          echo "Affected packages: $AFFECTED_PACKAGES"
+          echo "AFFECTED_PACKAGES=$AFFECTED_PACKAGES" >> $GITHUB_ENV
+
+      # 只为受影响的包安装依赖
+      - name: Install dependencies for affected packages
+        run: |
+          for PACKAGE in ${{ env.AFFECTED_PACKAGES }}; do
+            pnpm install --filter $PACKAGE...
+          done
+
+      - name: Create versions and changelogs
+        run: pnpm changeset version
+
+      - name: Commit versions and changelogs
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "ci: version packages"
+
+      - name: Push changes
+        run: git push --follow-tags
+
+      - name: Publish affected packages to npm
+        run: |
+          for PACKAGE in ${{ env.AFFECTED_PACKAGES }}; do
+            pnpm publish --filter $PACKAGE --access public --otp=${{ github.event.inputs.otp }}
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: changesets/action@v1
+        with:
+          version: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,48 @@
+{
+  "name": "toolset",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "A monorepo containing a versatile set of tools and components for modern web development",
+  "author": "lhvision",
+  "license": "MIT",
+  "keywords": [],
+  "engines": {
+    "node": "^18.0.0 || >=20.0.0",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "test": "pnpm -r run test",
+    "oxlint": "npx oxlint@latest",
+    "prepare": "simple-git-hooks"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^2.27.3",
+    "@changesets/cli": "^2.27.8",
+    "@commitlint/cli": "^19.4.1",
+    "@commitlint/config-conventional": "^19.4.1",
+    "@lhvision/helpers": "workspace:*",
+    "@types/node": "^22.5.3",
+    "eslint": "^9.9.1",
+    "eslint-plugin-format": "^0.1.2",
+    "lint-staged": "^15.2.10",
+    "simple-git-hooks": "^2.11.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.3",
+    "vitest": "^2.0.5",
+    "zx": "^8.1.5"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "eslint": "9"
+      }
+    }
+  },
+  "simple-git-hooks": {
+    "commit-msg": "pnpm commitlint -e -V || (echo '⚠️ 提交信息不符合规范！请参考格式：git commit -m \"feat(helpers): 添加新功能\"'; exit 1) && pnpm test",
+    "pre-commit": "pnpm lint-staged"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
+  }
+}
