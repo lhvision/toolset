@@ -20,8 +20,7 @@
       ]
     }
   ],
-  // changesets 在执行 changeset version 后自动提交这些更改
-  "commit": true,
+  "commit": false,
   "fixed": [],
   "linked": [],
   "access": "public",
