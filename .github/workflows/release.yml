@@ -79,7 +79,7 @@ jobs:
       - name: Build for affected packages
         run: |
           for PACKAGE in ${{ env.AFFECTED_PACKAGES }}; do
-            echo "Building package: $PACKAGE"
+            echo "pnpm --filter $PACKAGE... build"
             pnpm --filter $PACKAGE... build
           done
 
